@@ -53,6 +53,12 @@ pedidos permiten creación y edición mientras estén pendientes, gestión de su
 detalles y transiciones autorizadas por el rol. Precios, promociones,
 subtotales y total siempre son calculados por Laravel.
 
+También está disponible el módulo de ventas para `admin` y `vendedor`: venta
+directa, conversión desde pedidos listos o entregados, pagos y consulta del
+detalle financiero. La anulación de ventas y eliminación de pagos solo se
+muestran a `admin`/`superadmin`. Todos los montos visualizados provienen de la
+API y se conservan como cadenas decimales.
+
 Para validar:
 
 ```powershell

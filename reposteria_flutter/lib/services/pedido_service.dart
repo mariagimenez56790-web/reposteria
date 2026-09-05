@@ -22,6 +22,7 @@ class PedidoService {
     DateTime? desde,
     DateTime? hasta,
     int page = 1,
+    int perPage = 15,
   }) async {
     String date(DateTime value) =>
         '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
@@ -29,7 +30,7 @@ class PedidoService {
       path: _base(reposteriaId),
       queryParameters: {
         'page': '$page',
-        'per_page': '15',
+        'per_page': '$perPage',
         'estado': ?estado,
         if (clienteId != null) 'cliente_id': '$clienteId',
         if (desde != null) 'fecha_desde': date(desde),

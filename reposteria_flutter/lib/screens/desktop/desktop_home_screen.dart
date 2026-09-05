@@ -4,6 +4,7 @@ import '../../models/reposteria.dart';
 import '../catalogo_screen.dart';
 import '../clientes_screen.dart';
 import '../pedidos_screen.dart';
+import '../ventas_screen.dart';
 
 class DesktopHomeScreen extends StatefulWidget {
   const DesktopHomeScreen({super.key, required this.controller});
@@ -37,6 +38,11 @@ class _DesktopHomeScreenState extends State<DesktopHomeScreen> {
         key: ValueKey('orders-$tenant'),
         child: PedidosScreen(auth: widget.controller),
       ),
+      if (clientsAllowed)
+        KeyedSubtree(
+          key: ValueKey('sales-$tenant'),
+          child: VentasScreen(auth: widget.controller),
+        ),
     ];
     final destinations = <NavigationRailDestination>[
       const NavigationRailDestination(
@@ -60,6 +66,12 @@ class _DesktopHomeScreenState extends State<DesktopHomeScreen> {
         selectedIcon: Icon(Icons.receipt_long),
         label: Text('Pedidos'),
       ),
+      if (clientsAllowed)
+        const NavigationRailDestination(
+          icon: Icon(Icons.point_of_sale_outlined),
+          selectedIcon: Icon(Icons.point_of_sale),
+          label: Text('Ventas'),
+        ),
     ];
     return Scaffold(
       body: Row(

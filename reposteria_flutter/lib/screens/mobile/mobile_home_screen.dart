@@ -4,6 +4,7 @@ import '../../models/reposteria.dart';
 import '../catalogo_screen.dart';
 import '../clientes_screen.dart';
 import '../pedidos_screen.dart';
+import '../ventas_screen.dart';
 
 class MobileHomeScreen extends StatelessWidget {
   const MobileHomeScreen({super.key, required this.controller});
@@ -69,6 +70,13 @@ class MobileHomeScreen extends StatelessWidget {
               'Gestionar pedidos',
               () => open(context, PedidosScreen(auth: controller)),
             ),
+            if (clientsAllowed)
+              _tile(
+                Icons.point_of_sale,
+                'Ventas',
+                'Ventas y pagos',
+                () => open(context, VentasScreen(auth: controller)),
+              ),
           ],
         ],
       ),
@@ -89,15 +97,36 @@ class MobileHomeScreen extends StatelessWidget {
                   if (clientsAllowed)
                     IconButton(
                       onPressed: () =>
-                          open(context, ClientesScreen(auth: controller)),
-                      icon: const Icon(Icons.people),
-                      tooltip: 'Clientes',
+                          open(context, VentasScreen(auth: controller)),
+                      icon: const Icon(Icons.point_of_sale),
+                      tooltip: 'Ventas',
                     ),
                   IconButton(
                     onPressed: () =>
                         open(context, PedidosScreen(auth: controller)),
                     icon: const Icon(Icons.receipt_long),
                     tooltip: 'Pedidos',
+                  ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_horiz),
+                    onSelected: (value) {
+                      if (value == 'clientes') {
+                        open(context, ClientesScreen(auth: controller));
+                      } else if (value == 'logout') {
+                        controller.logout();
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      if (clientsAllowed)
+                        const PopupMenuItem(
+                          value: 'clientes',
+                          child: Text('Clientes'),
+                        ),
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Text('Cerrar sesión'),
+                      ),
+                    ],
                   ),
                 ],
               ),
