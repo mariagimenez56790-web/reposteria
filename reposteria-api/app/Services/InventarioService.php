@@ -41,6 +41,9 @@ class InventarioService
 
         return DB::transaction(function () use ($actor, $ingrediente, $tipo, $datos) {
             $bloqueado = Ingrediente::query()->lockForUpdate()->findOrFail($ingrediente->id);
+            if ($bloqueado->trashed() || ! $bloqueado->activo) {
+                throw ValidationException::withMessages(['ingrediente_id' => 'El ingrediente no está disponible.']);
+            }
             $anterior = $this->milesimas($bloqueado->stock_actual);
             $cantidad = $this->milesimas((string) $datos['cantidad']);
             $nuevo = $tipo->incrementa() ? $anterior + $cantidad : $anterior - $cantidad;

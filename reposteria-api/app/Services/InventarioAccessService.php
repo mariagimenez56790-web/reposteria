@@ -10,6 +10,15 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 class InventarioAccessService
 {
+    public function autorizarConsulta(User $actor, Reposteria $reposteria): void
+    {
+        $this->validar($reposteria);
+        if ($actor->esSuperadmin() || (in_array($actor->role?->nombre, ['admin', 'produccion'], true) && $actor->puedeOperarEnReposteria($reposteria))) {
+            return;
+        }
+        throw new AuthorizationException('No tiene autorización para consultar inventario.');
+    }
+
     public function autorizarAdministracion(User $actor, Reposteria $reposteria): void
     {
         $this->validar($reposteria);

@@ -27,7 +27,12 @@ class IngredienteService
     public function actualizar(User $actor, Ingrediente $ingrediente, array $datos): Ingrediente
     {
         $this->acceso->autorizarAdministracion($actor, $ingrediente->reposteria);
-        $datos = $this->validar($datos, $ingrediente->reposteria, $ingrediente);
+        $datos = $this->validar(array_replace([
+            'nombre' => $ingrediente->nombre,
+            'unidad_medida' => $ingrediente->unidad_medida->value,
+            'stock_minimo' => $ingrediente->stock_minimo,
+            'costo_unitario' => $ingrediente->costo_unitario,
+        ], $datos), $ingrediente->reposteria, $ingrediente);
         if (isset($datos['unidad_medida']) && $datos['unidad_medida'] !== $ingrediente->unidad_medida->value && ($ingrediente->movimientos()->exists() || $ingrediente->recetas()->exists())) {
             throw new DomainException('No puede cambiarse la unidad de un ingrediente con historial o recetas.');
         }
