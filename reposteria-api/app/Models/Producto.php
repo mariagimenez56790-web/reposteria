@@ -6,6 +6,7 @@ use Database\Factories\ProductoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -46,6 +47,11 @@ class Producto extends Model
     public function recetas(): HasMany
     {
         return $this->hasMany(Receta::class);
+    }
+
+    public function promociones(): BelongsToMany
+    {
+        return $this->belongsToMany(Promocion::class)->withTimestamps();
     }
 
     protected function casts(): array

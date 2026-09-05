@@ -6,6 +6,7 @@ use Database\Factories\ProductoVarianteFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -29,6 +30,11 @@ class ProductoVariante extends Model
     public function detallesVenta(): HasMany
     {
         return $this->hasMany(VentaDetalle::class, 'producto_variante_id');
+    }
+
+    public function promociones(): BelongsToMany
+    {
+        return $this->belongsToMany(Promocion::class, 'producto_variante_promocion')->withTimestamps();
     }
 
     protected function casts(): array

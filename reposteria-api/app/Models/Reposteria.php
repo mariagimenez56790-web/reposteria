@@ -111,6 +111,11 @@ class Reposteria extends Model
         return $this->hasMany(MovimientoInventario::class);
     }
 
+    public function promociones(): HasMany
+    {
+        return $this->hasMany(Promocion::class);
+    }
+
     protected function casts(): array
     {
         return [
