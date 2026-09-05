@@ -3,10 +3,12 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\V1\CategoriaController;
 use App\Http\Controllers\Api\V1\ClienteController;
+use App\Http\Controllers\Api\V1\PagoController;
 use App\Http\Controllers\Api\V1\PedidoController;
 use App\Http\Controllers\Api\V1\PedidoDetalleController;
 use App\Http\Controllers\Api\V1\ProductoController;
 use App\Http\Controllers\Api\V1\ReposteriaController;
+use App\Http\Controllers\Api\V1\VentaController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -32,5 +34,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/reposterias/{reposteria}/pedidos/{pedido}/detalles', [PedidoDetalleController::class, 'store']);
         Route::patch('/reposterias/{reposteria}/pedidos/{pedido}/detalles/{detalle}', [PedidoDetalleController::class, 'update']);
         Route::delete('/reposterias/{reposteria}/pedidos/{pedido}/detalles/{detalle}', [PedidoDetalleController::class, 'destroy']);
+        Route::post('/reposterias/{reposteria}/pedidos/{pedido}/venta', [VentaController::class, 'desdePedido']);
+        Route::get('/reposterias/{reposteria}/ventas', [VentaController::class, 'index']);
+        Route::get('/reposterias/{reposteria}/ventas/{venta}', [VentaController::class, 'show']);
+        Route::post('/reposterias/{reposteria}/ventas', [VentaController::class, 'store']);
+        Route::post('/reposterias/{reposteria}/ventas/{venta}/anular', [VentaController::class, 'anular']);
+        Route::post('/reposterias/{reposteria}/ventas/{venta}/pagos', [PagoController::class, 'store']);
+        Route::delete('/reposterias/{reposteria}/ventas/{venta}/pagos/{pago}', [PagoController::class, 'destroy']);
     });
 });

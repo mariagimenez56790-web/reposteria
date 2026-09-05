@@ -21,7 +21,10 @@ use Illuminate\Validation\ValidationException;
 
 class VentaService
 {
-    public function __construct(private VentaAccessService $acceso) {}
+    public function __construct(
+        private VentaAccessService $acceso,
+        private PromocionService $promociones,
+    ) {}
 
     public function crearDirecta(User $actor, Reposteria $reposteria, array $datos, array $detalles): Venta
     {
@@ -31,12 +34,12 @@ class VentaService
             throw new DomainException('La venta debe contener al menos un detalle.');
         }
 
-        return DB::transaction(function () use ($reposteria, $datos, $detalles): Venta {
+        return DB::transaction(function () use ($actor, $reposteria, $datos, $detalles): Venta {
             $datos = $this->validarCabecera($datos, $reposteria);
             $venta = $this->crearCabecera($reposteria, $datos);
 
             foreach ($detalles as $detalle) {
-                $this->crearDetalleDirecto($venta, $detalle);
+                $this->crearDetalleDirecto($actor, $venta, $detalle);
             }
 
             $this->aplicarTotales($venta, $datos['descuento']);
@@ -125,7 +128,7 @@ class VentaService
         return $venta;
     }
 
-    private function crearDetalleDirecto(Venta $venta, array $datos): void
+    private function crearDetalleDirecto(User $actor, Venta $venta, array $datos): void
     {
         $datos = Validator::make($datos, [
             'producto_id' => ['required', 'integer'],
@@ -151,7 +154,7 @@ class VentaService
             throw ValidationException::withMessages(['cantidad' => 'Stock insuficiente.']);
         }
 
-        $precio = (string) ($variante?->precio ?? $producto->precio);
+        $precio = $this->promociones->calcularPrecioPromocional($actor, $producto, $variante)['precio_final'];
         $subtotal = Dinero::aCentavos($precio) * $datos['cantidad'];
 
         if ($subtotal > 999999999999) {
