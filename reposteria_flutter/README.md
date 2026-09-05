@@ -1,17 +1,43 @@
-# reposteria_flutter
+# Repostería Flutter
 
-A new Flutter project.
+Cliente Flutter de la API Laravel del proyecto Repostería.
 
-## Getting Started
+## Ejecutar la integración local
 
-This project is a starting point for a Flutter application.
+Primero inicia Laravel desde `reposteria-api`:
 
-A few resources to get you started if this is your first Flutter project:
+```powershell
+php artisan serve
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+En el emulador Android, la URL predeterminada ya apunta al host mediante
+`http://10.0.2.2:8000`. Para otro destino, define la URL al compilar:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8000
+```
+
+En Windows o web local normalmente se usa:
+
+```powershell
+flutter run -d windows --dart-define=API_BASE_URL=http://127.0.0.1:8000
+```
+
+Usa HTTPS en producción. El tráfico HTTP sin cifrar solo está habilitado en la
+compilación Android de depuración.
+
+## Alcance actual
+
+- Login con `POST /api/login`.
+- Token Sanctum guardado con almacenamiento seguro.
+- Restauración de sesión mediante `GET /api/me` y Bearer token.
+- Recuperación del usuario y sus reposterías aprobadas.
+- Selección persistente de repostería activa.
+- Logout remoto y limpieza local de la sesión.
+
+Para validar:
+
+```powershell
+flutter analyze
+flutter test
+```

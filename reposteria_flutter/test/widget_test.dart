@@ -1,30 +1,64 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:reposteria_flutter/controllers/auth_controller.dart';
+import 'package:reposteria_flutter/services/api_client.dart';
+import 'package:reposteria_flutter/services/auth_service.dart';
+import 'package:reposteria_flutter/services/session_storage.dart';
 
-import 'package:reposteria_flutter/main.dart';
+class MemoryStorage implements SessionStorage {
+  String? token;
+  int? reposteriaId;
+  @override
+  Future<void> clear() async {
+    token = null;
+    reposteriaId = null;
+  }
+
+  @override
+  Future<int?> readReposteriaId() async => reposteriaId;
+  @override
+  Future<String?> readToken() async => token;
+  @override
+  Future<void> writeReposteriaId(int id) async => reposteriaId = id;
+  @override
+  Future<void> writeToken(String value) async => token = value;
+}
+
+const userJson =
+    '{"id":1,"name":"Ana","email":"ana@example.com","role":"admin","activo":true,"reposterias":[{"id":2,"nombre":"Dulce","slug":"dulce","estado":"aprobada"}]}';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('login guarda token, usuario y repostería activa', () async {
+    final storage = MemoryStorage();
+    final client = MockClient((request) async {
+      expect(request.url.path, '/api/login');
+      return http.Response('{"data":{"token":"abc","user":$userJson}}', 200);
+    });
+    final controller = AuthController(
+      AuthService(ApiClient(client: client, baseUrl: 'http://test')),
+      storage,
+    );
+    expect(await controller.login('ana@example.com', 'secret'), isTrue);
+    expect(controller.status, AuthStatus.authenticated);
+    expect(controller.user?.name, 'Ana');
+    expect(controller.activeReposteria?.id, 2);
+    expect(storage.token, 'abc');
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('restaura sesión consultando me con Bearer token', () async {
+    final storage = MemoryStorage()..token = 'abc';
+    final client = MockClient((request) async {
+      expect(request.url.path, '/api/me');
+      expect(request.headers['authorization'], 'Bearer abc');
+      return http.Response('{"data":$userJson}', 200);
+    });
+    final controller = AuthController(
+      AuthService(ApiClient(client: client, baseUrl: 'http://test')),
+      storage,
+    );
+    await controller.restoreSession();
+    expect(controller.status, AuthStatus.authenticated);
+    expect(controller.activeReposteria?.nombre, 'Dulce');
   });
 }
