@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -53,5 +54,20 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function reposteriasComoPropietario(): HasMany
+    {
+        return $this->hasMany(Reposteria::class, 'propietario_id');
+    }
+
+    public function reposteriasAprobadas(): HasMany
+    {
+        return $this->hasMany(Reposteria::class, 'aprobada_por');
+    }
+
+    public function esSuperadmin(): bool
+    {
+        return $this->activo && $this->role()->where('nombre', 'superadmin')->exists();
     }
 }
