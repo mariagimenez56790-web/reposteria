@@ -99,12 +99,26 @@ class PromocionService
         }
 
         $precioBase = $variante?->precio ?? $producto->precio;
-        $promociones = $variante === null ? collect() : $variante->promociones()->vigentes()->get();
+        $promociones = $variante === null ? collect() : $this->promocionesVigentes($variante);
         if ($promociones->isEmpty()) {
-            $promociones = $producto->promociones()->vigentes()->get();
+            $promociones = $this->promocionesVigentes($producto);
         }
 
         return $this->mejorPrecio($precioBase, $promociones);
+    }
+
+    private function promocionesVigentes(Producto|ProductoVariante $modelo): Collection
+    {
+        if (! $modelo->relationLoaded('promociones')) {
+            return $modelo->promociones()->vigentes()->get();
+        }
+
+        $ahora = now();
+
+        return $modelo->promociones->filter(fn (Promocion $promocion) => $promocion->activo
+            && ! $promocion->trashed()
+            && $promocion->fecha_inicio->lte($ahora)
+            && $promocion->fecha_fin->gte($ahora));
     }
 
     private function mejorPrecio(string $precioBase, Collection $promociones): array
@@ -188,7 +202,7 @@ class PromocionService
     private function autorizarConsulta(User $actor, Reposteria $reposteria): void
     {
         $this->validarReposteria($reposteria);
-        if ($actor->esSuperadmin() || (in_array($actor->role?->nombre, ['admin', 'vendedor'], true) && $actor->puedeOperarEnReposteria($reposteria))) {
+        if ($actor->esSuperadmin() || (in_array($actor->role?->nombre, ['admin', 'vendedor', 'produccion'], true) && $actor->puedeOperarEnReposteria($reposteria))) {
             return;
         }
         throw new AuthorizationException('No tiene autorización para consultar promociones.');
