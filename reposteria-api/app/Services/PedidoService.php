@@ -10,6 +10,7 @@ use App\Models\Producto;
 use App\Models\ProductoVariante;
 use App\Models\Reposteria;
 use App\Models\User;
+use App\Support\Dinero;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class PedidoService
 {
+    public function __construct(private PromocionService $promociones) {}
+
     public function crear(User $actor, Reposteria $reposteria, array $datos, array $detalles): Pedido
     {
         $this->autorizar($actor, $reposteria, ['admin', 'vendedor']);
@@ -25,12 +28,12 @@ class PedidoService
             throw new DomainException('El pedido debe contener al menos un detalle.');
         }
 
-        return DB::transaction(function () use ($reposteria, $datos, $detalles): Pedido {
+        return DB::transaction(function () use ($actor, $reposteria, $datos, $detalles): Pedido {
             $datos = $this->validarPedido($datos, $reposteria);
             $pedido = new Pedido;
             $pedido->forceFill($datos + ['reposteria_id' => $reposteria->id, 'estado' => PedidoEstado::Pendiente, 'fecha_pedido' => now(), 'total' => 0])->save();
             foreach ($detalles as $detalle) {
-                $this->crearDetalle($pedido, $detalle);
+                $this->crearDetalle($actor, $pedido, $detalle);
             }
             $this->recalcular($pedido);
 
@@ -50,8 +53,8 @@ class PedidoService
     {
         $this->autorizarEdicion($actor, $pedido);
 
-        return DB::transaction(function () use ($pedido, $datos): PedidoDetalle {
-            $detalle = $this->crearDetalle($pedido, $datos);
+        return DB::transaction(function () use ($actor, $pedido, $datos): PedidoDetalle {
+            $detalle = $this->crearDetalle($actor, $pedido, $datos);
             $this->recalcular($pedido);
 
             return $detalle;
@@ -63,8 +66,8 @@ class PedidoService
         $pedido = $detalle->pedido;
         $this->autorizarEdicion($actor, $pedido);
 
-        return DB::transaction(function () use ($detalle, $pedido, $datos): PedidoDetalle {
-            $detalle->forceFill($this->datosDetalle($pedido, $datos))->save();
+        return DB::transaction(function () use ($actor, $detalle, $pedido, $datos): PedidoDetalle {
+            $detalle->forceFill($this->datosDetalle($actor, $pedido, $datos))->save();
             $this->recalcular($pedido);
 
             return $detalle->refresh();
@@ -119,15 +122,15 @@ class PedidoService
         $pedido->delete();
     }
 
-    private function crearDetalle(Pedido $pedido, array $datos): PedidoDetalle
+    private function crearDetalle(User $actor, Pedido $pedido, array $datos): PedidoDetalle
     {
         $detalle = new PedidoDetalle;
-        $detalle->forceFill($this->datosDetalle($pedido, $datos) + ['pedido_id' => $pedido->id])->save();
+        $detalle->forceFill($this->datosDetalle($actor, $pedido, $datos) + ['pedido_id' => $pedido->id])->save();
 
         return $detalle;
     }
 
-    private function datosDetalle(Pedido $pedido, array $datos): array
+    private function datosDetalle(User $actor, Pedido $pedido, array $datos): array
     {
         $datos = Validator::make($datos, ['producto_id' => ['required', 'integer'], 'producto_variante_id' => ['nullable', 'integer'], 'cantidad' => ['required', 'integer', 'min:1']])->validate();
         $producto = Producto::query()->findOrFail($datos['producto_id']);
@@ -145,16 +148,16 @@ class PedidoService
         if ($producto->maneja_stock && (($variante?->stock ?? $producto->stock) < $cantidad)) {
             throw ValidationException::withMessages(['cantidad' => 'Stock insuficiente.']);
         }
-        $precio = $variante?->precio ?? $producto->precio;
-        $centavos = $this->aCentavos((string) $precio);
+        $precio = $this->promociones->calcularPrecioPromocional($actor, $producto, $variante)['precio_final'];
+        $centavos = Dinero::aCentavos($precio);
 
-        return ['producto_id' => $producto->id, 'producto_variante_id' => $variante?->id, 'nombre_producto' => $producto->nombre, 'nombre_variante' => $variante?->nombre, 'cantidad' => $cantidad, 'precio_unitario' => number_format($centavos / 100, 2, '.', ''), 'subtotal' => number_format(($centavos * $cantidad) / 100, 2, '.', '')];
+        return ['producto_id' => $producto->id, 'producto_variante_id' => $variante?->id, 'nombre_producto' => $producto->nombre, 'nombre_variante' => $variante?->nombre, 'cantidad' => $cantidad, 'precio_unitario' => Dinero::formatear($centavos), 'subtotal' => Dinero::formatear($centavos * $cantidad)];
     }
 
     private function recalcular(Pedido $pedido): void
     {
-        $centavos = $pedido->detalles()->get()->sum(fn ($detalle) => $this->aCentavos($detalle->subtotal));
-        $pedido->forceFill(['total' => number_format($centavos / 100, 2, '.', '')])->save();
+        $centavos = $pedido->detalles()->get()->sum(fn ($detalle) => Dinero::aCentavos($detalle->subtotal));
+        $pedido->forceFill(['total' => Dinero::formatear($centavos)])->save();
     }
 
     private function validarPedido(array $datos, Reposteria $reposteria): array
@@ -192,12 +195,5 @@ class PedidoService
             return;
         }
         throw new AuthorizationException('No tiene autorización para operar este pedido.');
-    }
-
-    private function aCentavos(string $importe): int
-    {
-        [$entero, $decimales] = array_pad(explode('.', $importe, 2), 2, '');
-
-        return ((int) $entero * 100) + (int) substr(str_pad($decimales, 2, '0'), 0, 2);
     }
 }

@@ -29,7 +29,13 @@ class ClienteService
     public function actualizar(User $actor, Cliente $cliente, array $datos): Cliente
     {
         $this->acceso->autorizarLecturaEscritura($actor, $cliente->reposteria);
-        $cliente->update($this->validar($datos));
+        $cliente->update($this->validar(array_replace([
+            'nombre' => $cliente->nombre,
+            'telefono' => $cliente->telefono,
+            'email' => $cliente->email,
+            'direccion' => $cliente->direccion,
+            'notas' => $cliente->notas,
+        ], $datos)));
 
         return $cliente->refresh();
     }
