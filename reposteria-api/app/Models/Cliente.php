@@ -27,6 +27,11 @@ class Cliente extends Model
         return $this->hasMany(Pedido::class);
     }
 
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(Venta::class);
+    }
+
     public function scopeDeReposteria(Builder $query, Reposteria|int $reposteria): Builder
     {
         return $query->where('reposteria_id', $reposteria instanceof Reposteria ? $reposteria->id : $reposteria);

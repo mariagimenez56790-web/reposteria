@@ -91,6 +91,11 @@ class Reposteria extends Model
         return $this->hasMany(Pedido::class);
     }
 
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(Venta::class);
+    }
+
     protected function casts(): array
     {
         return [

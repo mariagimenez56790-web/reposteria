@@ -38,6 +38,11 @@ class Producto extends Model
         return $this->hasMany(PedidoDetalle::class);
     }
 
+    public function detallesVenta(): HasMany
+    {
+        return $this->hasMany(VentaDetalle::class);
+    }
+
     protected function casts(): array
     {
         return [

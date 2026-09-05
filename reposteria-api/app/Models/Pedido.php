@@ -32,6 +32,11 @@ class Pedido extends Model
         return $this->hasMany(PedidoDetalle::class);
     }
 
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(Venta::class);
+    }
+
     protected function casts(): array
     {
         return ['estado' => PedidoEstado::class, 'fecha_pedido' => 'datetime', 'fecha_entrega' => 'datetime', 'total' => 'decimal:2', 'deleted_at' => 'datetime'];
