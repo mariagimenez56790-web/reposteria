@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\PagoController;
 use App\Http\Controllers\Api\V1\PedidoController;
 use App\Http\Controllers\Api\V1\PedidoDetalleController;
 use App\Http\Controllers\Api\V1\ProductoController;
+use App\Http\Controllers\Api\V1\PromocionController;
 use App\Http\Controllers\Api\V1\RecetaController;
 use App\Http\Controllers\Api\V1\ReposteriaController;
 use App\Http\Controllers\Api\V1\VentaController;
@@ -54,5 +55,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::patch('/reposterias/{reposteria}/recetas/{receta}', [RecetaController::class, 'update']);
         Route::get('/reposterias/{reposteria}/inventario/movimientos', [MovimientoInventarioController::class, 'index']);
         Route::post('/reposterias/{reposteria}/inventario/movimientos', [MovimientoInventarioController::class, 'store']);
+        Route::get('/reposterias/{reposteria}/promociones', [PromocionController::class, 'index']);
+        Route::get('/reposterias/{reposteria}/promociones/{promocion}', [PromocionController::class, 'show']);
+        Route::post('/reposterias/{reposteria}/promociones', [PromocionController::class, 'store']);
+        Route::patch('/reposterias/{reposteria}/promociones/{promocion}', [PromocionController::class, 'update']);
+        Route::delete('/reposterias/{reposteria}/promociones/{promocion}', [PromocionController::class, 'destroy']);
     });
 });

@@ -13,6 +13,7 @@ use App\Support\Dinero;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -31,11 +32,48 @@ class PromocionService
     public function actualizar(User $actor, Promocion $promocion, array $datos): Promocion
     {
         $this->autorizarAdministracion($actor, $promocion->reposteria);
-        $validados = $this->validar($datos);
+        $validados = $this->validar(array_replace([
+            'nombre' => $promocion->nombre,
+            'descripcion' => $promocion->descripcion,
+            'tipo_descuento' => $promocion->tipo_descuento->value,
+            'valor_descuento' => $promocion->valor_descuento,
+            'fecha_inicio' => $promocion->fecha_inicio,
+            'fecha_fin' => $promocion->fecha_fin,
+        ], $datos));
         $this->validarMontoFijoEnAsociaciones($promocion, $validados);
         $promocion->forceFill($validados)->save();
 
         return $promocion->refresh();
+    }
+
+    public function crearCompleta(User $actor, Reposteria $reposteria, array $datos, array $productoIds, array $varianteIds): Promocion
+    {
+        return DB::transaction(function () use ($actor, $reposteria, $datos, $productoIds, $varianteIds): Promocion {
+            $promocion = $this->crear($actor, $reposteria, $datos);
+            $this->sincronizarAsociaciones($actor, $promocion, $productoIds, $varianteIds);
+
+            return $promocion->refresh()->load(['productos', 'variantes.producto']);
+        });
+    }
+
+    public function actualizarCompleta(User $actor, Promocion $promocion, array $datos, ?array $productoIds, ?array $varianteIds, ?bool $activa): Promocion
+    {
+        return DB::transaction(function () use ($actor, $promocion, $datos, $productoIds, $varianteIds, $activa): Promocion {
+            $promocion = $this->actualizar($actor, $promocion, $datos);
+            if ($activa !== null) {
+                $promocion = $this->establecerActiva($actor, $promocion, $activa);
+            }
+            if ($productoIds !== null || $varianteIds !== null) {
+                $this->sincronizarAsociaciones(
+                    $actor,
+                    $promocion,
+                    $productoIds ?? $promocion->productos()->pluck('productos.id')->all(),
+                    $varianteIds ?? $promocion->variantes()->pluck('producto_variantes.id')->all(),
+                );
+            }
+
+            return $promocion->refresh()->load(['productos', 'variantes.producto']);
+        });
     }
 
     public function establecerActiva(User $actor, Promocion $promocion, bool $activa): Promocion
@@ -190,13 +228,36 @@ class PromocionService
         }
     }
 
-    private function autorizarAdministracion(User $actor, Reposteria $reposteria): void
+    public function autorizarAdministracion(User $actor, Reposteria $reposteria): void
     {
         $this->validarReposteria($reposteria);
         if ($actor->esSuperadmin() || ($actor->role?->nombre === 'admin' && $actor->puedeOperarEnReposteria($reposteria))) {
             return;
         }
         throw new AuthorizationException('No tiene autorización para administrar promociones.');
+    }
+
+    private function sincronizarAsociaciones(User $actor, Promocion $promocion, array $productoIds, array $varianteIds): void
+    {
+        $this->autorizarAdministracion($actor, $promocion->reposteria);
+        $productos = Producto::query()->whereKey($productoIds)->get();
+        $variantes = ProductoVariante::query()->whereKey($varianteIds)->with('producto')->get();
+        if ($productos->count() !== count($productoIds)) {
+            throw ValidationException::withMessages(['producto_ids' => 'Uno o más productos no existen.']);
+        }
+        if ($variantes->count() !== count($varianteIds)) {
+            throw ValidationException::withMessages(['variante_ids' => 'Una o más variantes no existen.']);
+        }
+        foreach ($productos as $producto) {
+            $this->validarProducto($promocion, $producto);
+            $this->validarDescuentoAplicable($promocion, $producto->precio);
+        }
+        foreach ($variantes as $variante) {
+            $this->validarVariante($promocion, $variante);
+            $this->validarDescuentoAplicable($promocion, $variante->precio);
+        }
+        $promocion->productos()->sync($productoIds);
+        $promocion->variantes()->sync($varianteIds);
     }
 
     private function autorizarConsulta(User $actor, Reposteria $reposteria): void
