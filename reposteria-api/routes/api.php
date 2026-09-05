@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\V1\CategoriaController;
 use App\Http\Controllers\Api\V1\ClienteController;
+use App\Http\Controllers\Api\V1\EmpleadoController;
 use App\Http\Controllers\Api\V1\IngredienteController;
 use App\Http\Controllers\Api\V1\MovimientoInventarioController;
 use App\Http\Controllers\Api\V1\PagoController;
@@ -60,5 +61,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/reposterias/{reposteria}/promociones', [PromocionController::class, 'store']);
         Route::patch('/reposterias/{reposteria}/promociones/{promocion}', [PromocionController::class, 'update']);
         Route::delete('/reposterias/{reposteria}/promociones/{promocion}', [PromocionController::class, 'destroy']);
+        Route::get('/reposterias/{reposteria}/empleados', [EmpleadoController::class, 'index']);
+        Route::get('/reposterias/{reposteria}/empleados/{usuario}', [EmpleadoController::class, 'show']);
+        Route::post('/reposterias/{reposteria}/empleados', [EmpleadoController::class, 'store']);
+        Route::patch('/reposterias/{reposteria}/empleados/{usuario}', [EmpleadoController::class, 'update']);
+        Route::delete('/reposterias/{reposteria}/empleados/{usuario}', [EmpleadoController::class, 'destroy']);
     });
 });
