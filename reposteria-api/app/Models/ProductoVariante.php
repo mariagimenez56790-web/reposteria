@@ -6,6 +6,7 @@ use Database\Factories\ProductoVarianteFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductoVariante extends Model
@@ -18,6 +19,11 @@ class ProductoVariante extends Model
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class);
+    }
+
+    public function detallesPedido(): HasMany
+    {
+        return $this->hasMany(PedidoDetalle::class);
     }
 
     protected function casts(): array

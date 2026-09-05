@@ -33,6 +33,11 @@ class Producto extends Model
         return $this->hasMany(ProductoVariante::class);
     }
 
+    public function detallesPedido(): HasMany
+    {
+        return $this->hasMany(PedidoDetalle::class);
+    }
+
     protected function casts(): array
     {
         return [
