@@ -68,6 +68,11 @@ class User extends Authenticatable
         return $this->hasMany(Reposteria::class, 'aprobada_por');
     }
 
+    public function movimientosInventarioCreados(): HasMany
+    {
+        return $this->hasMany(MovimientoInventario::class, 'creado_por');
+    }
+
     public function reposterias(): BelongsToMany
     {
         return $this->belongsToMany(Reposteria::class)->withTimestamps();

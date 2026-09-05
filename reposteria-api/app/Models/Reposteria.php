@@ -96,6 +96,21 @@ class Reposteria extends Model
         return $this->hasMany(Venta::class);
     }
 
+    public function ingredientes(): HasMany
+    {
+        return $this->hasMany(Ingrediente::class);
+    }
+
+    public function recetas(): HasMany
+    {
+        return $this->hasMany(Receta::class);
+    }
+
+    public function movimientosInventario(): HasMany
+    {
+        return $this->hasMany(MovimientoInventario::class);
+    }
+
     protected function casts(): array
     {
         return [

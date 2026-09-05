@@ -43,6 +43,11 @@ class Producto extends Model
         return $this->hasMany(VentaDetalle::class);
     }
 
+    public function recetas(): HasMany
+    {
+        return $this->hasMany(Receta::class);
+    }
+
     protected function casts(): array
     {
         return [
