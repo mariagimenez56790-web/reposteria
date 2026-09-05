@@ -96,7 +96,7 @@ class ReposteriaEstadoService
         });
     }
 
-    private function autorizar(User $usuario): void
+    public function autorizar(User $usuario): void
     {
         if (! $usuario->esSuperadmin()) {
             throw new AuthorizationException('Solo un superadmin activo puede administrar el estado.');

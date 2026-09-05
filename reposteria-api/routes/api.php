@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\V1\AdminReposteriaController;
 use App\Http\Controllers\Api\V1\CategoriaController;
 use App\Http\Controllers\Api\V1\ClienteController;
 use App\Http\Controllers\Api\V1\EmpleadoController;
@@ -23,6 +24,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('v1')->group(function () {
+        Route::get('/admin/reposterias', [AdminReposteriaController::class, 'index']);
+        Route::get('/admin/reposterias/{reposteria}', [AdminReposteriaController::class, 'show']);
+        Route::post('/admin/reposterias/{reposteria}/aprobar', [AdminReposteriaController::class, 'aprobar']);
+        Route::post('/admin/reposterias/{reposteria}/rechazar', [AdminReposteriaController::class, 'rechazar']);
+        Route::post('/admin/reposterias/{reposteria}/suspender', [AdminReposteriaController::class, 'suspender']);
+        Route::post('/admin/reposterias/{reposteria}/inactivar', [AdminReposteriaController::class, 'inactivar']);
         Route::get('/reposterias', [ReposteriaController::class, 'index']);
         Route::get('/reposterias/{reposteria}/categorias', [CategoriaController::class, 'index']);
         Route::get('/reposterias/{reposteria}/productos', [ProductoController::class, 'index']);
