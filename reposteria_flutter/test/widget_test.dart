@@ -61,4 +61,25 @@ void main() {
     expect(controller.status, AuthStatus.authenticated);
     expect(controller.activeReposteria?.nombre, 'Dulce');
   });
+
+  test('logout revoca token y limpia sesión local', () async {
+    final storage = MemoryStorage()..token = 'abc';
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/me') {
+        return http.Response('{"data":$userJson}', 200);
+      }
+      expect(request.url.path, '/api/logout');
+      expect(request.headers['authorization'], 'Bearer abc');
+      return http.Response('{"message":"ok"}', 200);
+    });
+    final controller = AuthController(
+      AuthService(ApiClient(client: client, baseUrl: 'http://test')),
+      storage,
+    );
+    await controller.restoreSession();
+    await controller.logout();
+    expect(controller.status, AuthStatus.unauthenticated);
+    expect(storage.token, isNull);
+    expect(controller.activeReposteria, isNull);
+  });
 }

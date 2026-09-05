@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 import '../models/reposteria.dart';
+import 'catalogo_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.controller});
@@ -64,6 +65,18 @@ class HomeScreen extends StatelessWidget {
                 subtitle: Text('Estado: ${active.estado}'),
               ),
             ),
+          if (controller.activeReposteria != null) ...[
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => CatalogoScreen(authController: controller),
+                ),
+              ),
+              icon: const Icon(Icons.menu_book_outlined),
+              label: const Text('Ver catálogo'),
+            ),
+          ],
         ],
       ),
     );

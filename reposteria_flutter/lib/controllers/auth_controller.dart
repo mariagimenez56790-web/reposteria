@@ -19,6 +19,8 @@ class AuthController extends ChangeNotifier {
   String? error;
   String? _token;
 
+  String? get accessToken => _token;
+
   Future<void> restoreSession() async {
     status = AuthStatus.loading;
     notifyListeners();
@@ -80,6 +82,12 @@ class AuthController extends ChangeNotifier {
         // El cierre local no depende de que el servidor esté disponible.
       }
     }
+    await _clearLocalSession();
+    status = AuthStatus.unauthenticated;
+    notifyListeners();
+  }
+
+  Future<void> expireSession() async {
     await _clearLocalSession();
     status = AuthStatus.unauthenticated;
     notifyListeners();

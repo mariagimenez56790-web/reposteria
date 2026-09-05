@@ -34,6 +34,12 @@ compilación Android de depuración.
 - Recuperación del usuario y sus reposterías aprobadas.
 - Selección persistente de repostería activa.
 - Logout remoto y limpieza local de la sesión.
+- Catálogo real de la repostería activa: categorías, búsqueda, filtro,
+  paginación, precios promocionales, detalle y variantes.
+
+Las imágenes se muestran cuando `imagen` contiene una URL HTTP/HTTPS absoluta.
+Los valores nulos o rutas sin URL pública utilizan un placeholder; esta etapa no
+modifica Laravel ni implementa cargas de archivos.
 
 Para validar:
 
