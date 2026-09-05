@@ -14,7 +14,7 @@ class ReposteriaFactory extends Factory
     public function definition(): array
     {
         return [
-            'propietario_id' => User::factory(),
+            'propietario_id' => User::factory()->conRol('admin'),
             'nombre' => fake()->unique()->company(),
             'descripcion' => fake()->sentence(),
             'telefono' => fake()->phoneNumber(),

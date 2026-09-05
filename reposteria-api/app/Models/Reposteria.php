@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\ReposteriaEstado;
 use Database\Factories\ReposteriaFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -35,11 +37,21 @@ class Reposteria extends Model
     protected static function booted(): void
     {
         static::creating(function (Reposteria $reposteria): void {
+            $propietario = User::query()->find($reposteria->propietario_id);
+
+            if (! $propietario?->activo || ! $propietario->tieneRolInterno()) {
+                throw new DomainException('El propietario debe ser un usuario interno activo.');
+            }
+
             $reposteria->slug = static::slugUnico($reposteria->nombre);
             $reposteria->estado = ReposteriaEstado::Pendiente;
             $reposteria->aprobada_por = null;
             $reposteria->fecha_aprobacion = null;
             $reposteria->motivo_estado = null;
+        });
+
+        static::created(function (Reposteria $reposteria): void {
+            $reposteria->usuarios()->syncWithoutDetaching([$reposteria->propietario_id]);
         });
     }
 
@@ -51,6 +63,11 @@ class Reposteria extends Model
     public function aprobadaPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'aprobada_por');
+    }
+
+    public function usuarios(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 
     protected function casts(): array

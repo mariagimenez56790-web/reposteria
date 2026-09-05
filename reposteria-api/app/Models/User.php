@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\ReposteriaEstado;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -66,8 +68,37 @@ class User extends Authenticatable
         return $this->hasMany(Reposteria::class, 'aprobada_por');
     }
 
+    public function reposterias(): BelongsToMany
+    {
+        return $this->belongsToMany(Reposteria::class)->withTimestamps();
+    }
+
     public function esSuperadmin(): bool
     {
         return $this->activo && $this->role()->where('nombre', 'superadmin')->exists();
+    }
+
+    public function tieneRolInterno(): bool
+    {
+        return in_array($this->role?->nombre, ['admin', 'vendedor', 'produccion'], true);
+    }
+
+    public function perteneceAReposteria(Reposteria $reposteria): bool
+    {
+        return $this->reposterias()->whereKey($reposteria->id)->exists();
+    }
+
+    public function puedeOperarEnReposteria(Reposteria $reposteria): bool
+    {
+        return $this->activo
+            && $this->tieneRolInterno()
+            && $reposteria->estado === ReposteriaEstado::Aprobada
+            && ! $reposteria->trashed()
+            && $this->perteneceAReposteria($reposteria);
+    }
+
+    public function puedeAccederAReposteria(Reposteria $reposteria): bool
+    {
+        return $this->esSuperadmin() || $this->puedeOperarEnReposteria($reposteria);
     }
 }

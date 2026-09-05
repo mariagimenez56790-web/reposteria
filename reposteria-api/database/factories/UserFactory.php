@@ -44,4 +44,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function conRol(string $nombre): static
+    {
+        return $this->state(fn () => [
+            'role_id' => Role::query()->firstOrCreate(
+                ['nombre' => $nombre],
+                ['descripcion' => null, 'ambito' => $nombre === 'superadmin' ? 'sistema' : 'reposteria'],
+            )->id,
+        ]);
+    }
 }
