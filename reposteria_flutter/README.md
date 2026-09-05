@@ -41,6 +41,18 @@ Las imágenes se muestran cuando `imagen` contiene una URL HTTP/HTTPS absoluta.
 Los valores nulos o rutas sin URL pública utilizan un placeholder; esta etapa no
 modifica Laravel ni implementa cargas de archivos.
 
+## Presentación móvil y PC/web
+
+El breakpoint responsive es **840 px**. Por debajo se usa navegación móvil,
+tarjetas, formularios verticales y acciones táctiles. Desde 840 px se usa una
+navegación lateral estable, tablas, paneles y formularios con mayor densidad.
+Ambas presentaciones comparten sesión, controladores, servicios y modelos.
+
+Los módulos disponibles actualmente son catálogo, clientes y pedidos. Los
+pedidos permiten creación y edición mientras estén pendientes, gestión de sus
+detalles y transiciones autorizadas por el rol. Precios, promociones,
+subtotales y total siempre son calculados por Laravel.
+
 Para validar:
 
 ```powershell

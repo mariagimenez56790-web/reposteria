@@ -8,6 +8,7 @@ import '../models/reposteria.dart';
 import '../services/api_client.dart';
 import '../services/catalogo_service.dart';
 import '../widgets/producto_card.dart';
+import '../widgets/adaptive_layout.dart';
 import 'producto_detalle_screen.dart';
 
 class CatalogoScreen extends StatefulWidget {
@@ -78,15 +79,34 @@ class _CatalogoScreenState extends State<CatalogoScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Catálogo')),
-    body: ListenableBuilder(
-      listenable: _controller,
-      builder: (context, _) => Column(
-        children: [
-          _filters(context),
-          Expanded(child: _content(context)),
-        ],
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _controller,
+    builder: (context, _) => AdaptiveLayout(
+      mobile: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Catálogo')),
+        body: Column(
+          children: [
+            _filters(context),
+            Expanded(child: _content(context)),
+          ],
+        ),
+      ),
+      desktop: (_) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Catálogo · ${widget.authController.activeReposteria?.nombre ?? ''}',
+          ),
+        ),
+        body: Row(
+          children: [
+            SizedBox(
+              width: 310,
+              child: SingleChildScrollView(child: _filters(context)),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: _content(context)),
+          ],
+        ),
       ),
     ),
   );
