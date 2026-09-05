@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\ProductoController;
 use App\Http\Controllers\Api\V1\PromocionController;
 use App\Http\Controllers\Api\V1\RecetaController;
 use App\Http\Controllers\Api\V1\ReposteriaController;
+use App\Http\Controllers\Api\V1\ReposteriaPerfilController;
 use App\Http\Controllers\Api\V1\VentaController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/admin/reposterias/{reposteria}/suspender', [AdminReposteriaController::class, 'suspender']);
         Route::post('/admin/reposterias/{reposteria}/inactivar', [AdminReposteriaController::class, 'inactivar']);
         Route::get('/reposterias', [ReposteriaController::class, 'index']);
+        Route::get('/reposterias/{reposteria}/perfil', [ReposteriaPerfilController::class, 'show']);
+        Route::patch('/reposterias/{reposteria}/perfil', [ReposteriaPerfilController::class, 'update']);
         Route::get('/reposterias/{reposteria}/categorias', [CategoriaController::class, 'index']);
         Route::get('/reposterias/{reposteria}/productos', [ProductoController::class, 'index']);
         Route::get('/reposterias/{reposteria}/productos/{producto}', [ProductoController::class, 'show']);
